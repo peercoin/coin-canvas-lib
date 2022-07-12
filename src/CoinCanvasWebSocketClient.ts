@@ -3,6 +3,7 @@
 import Deserialiser from "./Deserialiser";
 import PixelColour from "./PixelColour";
 import {getErrorMessage, range} from "./utils";
+import IsoWs from "isomorphic-ws";
 
 const RESPONSE_UPDATE_COLOURS = 0;
 const MAX_UPDATES = 1000*1000;
@@ -11,7 +12,7 @@ const MAX_UPDATES = 1000*1000;
  * Encapsulates a connection to the web socket API.
  */
 export default class CoinCanvasWebSocketClient {
-    #ws: WebSocket;
+    #ws: WebSocket | IsoWs;
 
     /**
      * @param args.onOpen Called when the socket has been opened.
@@ -26,7 +27,8 @@ export default class CoinCanvasWebSocketClient {
         onPixelColours: (colours: PixelColour[]) => void,
     }) {
 
-        this.#ws = new WebSocket(args.url);
+        // Use global WebSocket if available
+        this.#ws = globalThis.WebSocket ? new WebSocket(args.url) : new IsoWs(args.url);
 
         this.#ws.binaryType = "arraybuffer";
         this.#ws.onclose = (e: CloseEvent) => args.onClose(e.reason);
