@@ -9,24 +9,29 @@ export default class CoinCanvasHttpClient {
     #url: string;
     #rateLimitMs: number;
     #lastRequestMs: number;
+    #nodeOrigin?: string;
 
-    constructor(url: string, rateLimitMs: number) {
-        this.#url = url;
+    constructor(url: string, rateLimitMs: number, nodeOrigin?: string) {
+        // Ensure there is a trailing slash on the url
+        this.#url = url.endsWith("/") ? url : `${url}/`;
         this.#rateLimitMs = rateLimitMs;
         this.#lastRequestMs = 0;
+        this.#nodeOrigin = nodeOrigin;
     }
 
     async #rateLimitedRequest(path: string, length: number): Promise<ArrayBuffer> {
         const nextReqMs = this.#lastRequestMs + this.#rateLimitMs;
         const waitMs = nextReqMs - Date.now();
         if (waitMs > 0) await sleep(waitMs);
-        const result = await binaryHttpRequest(this.#url + path, length);
+        const result = await binaryHttpRequest(
+            this.#url + path, length, this.#nodeOrigin
+        );
         this.#lastRequestMs = Date.now();
         return result;
     }
 
     async pixelBalances(x: number, y: number): Promise<bigint[]> {
-        const result = await this.#rateLimitedRequest(`/balances/${x}/${y}`, 8*NUM_COLOURS);
+        const result = await this.#rateLimitedRequest(`balances/${x}/${y}`, 8*NUM_COLOURS);
         const ds = new Deserialiser(result);
         return range(NUM_COLOURS).map(() => ds.uint64());
     }

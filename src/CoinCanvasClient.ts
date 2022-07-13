@@ -21,6 +21,8 @@ export default class CoinCanvasClient {
     #onFullCanvas: (canvas: Canvas) => void;
     #onUpdatedPixels: (pixel: PixelColour[]) => void;
     #onError: (what: string) => void;
+    #wsOrigin: string | undefined;
+    #bitmapOrigin: string | undefined;
 
     #http: CoinCanvasHttpClient;
     #wsClient: CoinCanvasWebSocketClient | null = null;
@@ -45,14 +47,19 @@ export default class CoinCanvasClient {
         wsURL: string, httpURL: string, httpRateLimit: number, bitmapURL: string,
         reconnectMs: number,
         addrGen: PixelAddrGenerator,
+        wsOrigin?: string
+        httpOrigin?: string
+        bitmapOrigin?: string
         onFullCanvas: (canvas: Canvas) => void,
         onUpdatedPixels: (pixel: PixelColour[]) => void,
-        onError: (what: string) => void
+        onError: (what: string) => void,
     }) {
 
         this.#xLen = args.xLen;
         this.#yLen = args.yLen;
-        this.#http = new CoinCanvasHttpClient(args.httpURL, args.httpRateLimit);
+        this.#http = new CoinCanvasHttpClient(
+            args.httpURL, args.httpRateLimit, args.httpOrigin
+        );
         this.#wsURL = args.wsURL;
         this.#bitmapURL = args.bitmapURL;
         this.#reconnectMs = args.reconnectMs;
@@ -60,6 +67,9 @@ export default class CoinCanvasClient {
         this.#onFullCanvas = args.onFullCanvas;
         this.#onUpdatedPixels = args.onUpdatedPixels;
         this.#onError = args.onError;
+
+        this.#wsOrigin = args.wsOrigin;
+        this.#bitmapOrigin = args.bitmapOrigin;
 
         this.#start();
 
@@ -94,7 +104,8 @@ export default class CoinCanvasClient {
             url: this.#wsURL,
             onOpen: () => this.#wsOpened(),
             onClose: reason => this.#error(reason),
-            onPixelColours: colours => this.#updatedColours(colours)
+            onPixelColours: colours => this.#updatedColours(colours),
+            nodeOrigin: this.#wsOrigin
         });
 
     }
@@ -105,7 +116,9 @@ export default class CoinCanvasClient {
 
             // Download bitmap
             const size = Math.ceil(this.#xLen*this.#yLen / 2);
-            const rawBitmap = await binaryHttpRequest(this.#bitmapURL, size);
+            const rawBitmap = await binaryHttpRequest(
+                this.#bitmapURL, size, this.#bitmapOrigin
+            );
             const canvas = new Canvas(this.#xLen, this.#yLen, rawBitmap);
 
             // Add changes received from web socket

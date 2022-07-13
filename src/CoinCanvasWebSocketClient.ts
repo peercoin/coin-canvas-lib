@@ -15,6 +15,8 @@ export default class CoinCanvasWebSocketClient {
     #ws: WebSocket | IsoWs;
 
     /**
+     * @param args.nodeOrigin When running on nodejs, this can be used to set
+     * the web socket Origin header for the handshake.
      * @param args.onOpen Called when the socket has been opened.
      * @param args.onClose Called when the socket closes for any reason or the socket has
      * failed to open.
@@ -22,13 +24,16 @@ export default class CoinCanvasWebSocketClient {
      */
     constructor(args: {
         url: string,
+        nodeOrigin?: string
         onOpen: () => void,
         onClose: (reason: string) => void,
         onPixelColours: (colours: PixelColour[]) => void,
     }) {
 
         // Use global WebSocket if available
-        this.#ws = globalThis.WebSocket ? new WebSocket(args.url) : new IsoWs(args.url);
+        this.#ws = globalThis.WebSocket
+            ? new WebSocket(args.url)
+            : new IsoWs(args.url, { origin: args.nodeOrigin });
 
         this.#ws.binaryType = "arraybuffer";
         this.#ws.onclose = (e: CloseEvent) => args.onClose(e.reason);
@@ -67,7 +72,7 @@ export default class CoinCanvasWebSocketClient {
     }
 
     close() {
-        this.#ws.close();
+        this.#ws.close(1000);
     }
 
 }
