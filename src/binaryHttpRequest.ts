@@ -14,6 +14,14 @@ export default async function binaryHttpRequest(
         headers: nodeOrigin ? { "Origin": nodeOrigin } : undefined
     });
 
+    // Axios returns Buffer objects on node (which is dumb)
+    // Therefore it may need to be converted
+    // https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer
+    if (result.data.buffer !== undefined) {
+        const b = result.data;
+        return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+    }
+
     return result.data;
 
 }
