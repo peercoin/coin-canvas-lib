@@ -3,6 +3,9 @@
 This library encapsulates interaction with the coin canvas server. The
 `CoinCanvasClient` class includes access to all of the underlying APIs.
 
+The library can be built with `npm run build`. Output files are placed into
+`dist` and the package can be imported normally after it has been built.
+
 Canvas data can be handled with the `onFullCanvas` and `onUpdatedPixels`
 callbacks. The `Canvas` class provides access to an `ImageData` object that can
 be used to create the initial canvas. `PixelColour` objects provide information
