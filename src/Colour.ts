@@ -16,8 +16,8 @@ export default class Colour {
 
     static fromId(id: number): Colour {
         return [
-            new Colour(0, 0xffffff, "white"),
-            new Colour(1, 0xe0e0e0, "light grey"),
+            new Colour(0, 0xFFFFFF, "white"),
+            new Colour(1, 0xC8C8C8, "light grey"),
             new Colour(2, 0x888888, "grey"),
             new Colour(3, 0x111111, "black"),
             new Colour(4, 0xFFA7D1, "pink"),
