@@ -1,7 +1,9 @@
 // Copyright 2022 Matthew Mitchell
 
+import PixelCoord from "./PixelCoord";
+
 interface PixelAddrGenerator {
-    forPixelColour(x: number, y: number, colourId: number): string;
+    forPixelColour(coord: PixelCoord, colourId: number): string;
 }
 
 export default PixelAddrGenerator;

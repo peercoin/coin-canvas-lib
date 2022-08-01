@@ -21,7 +21,7 @@ export default class Canvas {
 
     updatePixel(pixel: PixelColour) {
 
-        const pos = pixel.y*this.#xLen + pixel.x;
+        const pos = pixel.coord.y*this.#xLen + pixel.coord.x;
         const byteOff = Math.floor(pos / 2);
         const isFirst = pos % 2 == 0;
 

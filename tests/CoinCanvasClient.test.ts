@@ -1,5 +1,8 @@
 // Copyright 2022 Matthew Mitchell
 
+/* eslint-disable object-property-newline */
+/* eslint-disable max-lines */
+
 import axios from "axios";
 import Canvas from "../src/Canvas";
 import CoinCanvasClient from "../src/CoinCanvasClient";
@@ -191,7 +194,7 @@ test("provides canvas, canvas updates and pixel data", async () => {
     // No errors
     expect(onError.mock.calls.length).toEqual(0);
 
-    expectPixelBalances(await client.pixel(0, 0));
+    expectPixelBalances(await client.pixel({ x: 0, y: 0}));
 
     // Now receive updated pixels to onUpdatedPixels
     const promise = utils.mockCallbackToPromise(onUpdatedPixels);
@@ -199,7 +202,8 @@ test("provides canvas, canvas updates and pixel data", async () => {
     wsClient?.send(getPixelUpdateBytes(2, 10));
 
     expect(await promise).toEqual([
-        new PixelColour(0, 0, 2), new PixelColour(5, 5, 10)
+        new PixelColour({ x: 0, y: 0 }, 2),
+        new PixelColour({ x: 5, y: 5 }, 10)
     ]);
 
     client.close();

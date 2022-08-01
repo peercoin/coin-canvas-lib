@@ -2,7 +2,7 @@
 
 import Colour from "./Colour";
 
-interface PixelColourData {
+export interface PixelColourData {
     balance: bigint;
     address: string;
     colour: Colour;

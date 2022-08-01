@@ -3,22 +3,24 @@
 import Colour from "./Colour";
 import Deserialiser from "./Deserialiser";
 import { NUM_COLOURS } from "./constants";
+import PixelCoord from "./PixelCoord";
 
 export default class PixelColour {
-    x: number;
-    y: number;
+    coord: PixelCoord;
     colourId: number;
 
-    constructor(x: number, y: number, colourId: number) {
-        this.x = x;
-        this.y = y;
+    constructor(coord: PixelCoord, colourId: number) {
+        this.coord = coord;
         this.colourId = colourId;
         if (this.colourId >= NUM_COLOURS)
             throw RangeError("Colour ID is out of range 0-15");
     }
 
     static fromDeserialiser(ds: Deserialiser) {
-        return new PixelColour(ds.uint16(), ds.uint16(), ds.uint8());
+        return new PixelColour({
+            x: ds.uint16(),
+            y: ds.uint16()
+        }, ds.uint8());
     }
 
     get colour(): Colour {

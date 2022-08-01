@@ -10,6 +10,7 @@ import CoinCanvasWebSocketClient from "./CoinCanvasWebSocketClient";
 import PixelAddrGenerator from "./PixelAddrGenerator";
 import {NUM_COLOURS} from "./constants";
 import Colour from "./Colour";
+import PixelCoord from "./PixelCoord";
 
 export default class CoinCanvasClient {
     #xLen: number;
@@ -75,11 +76,11 @@ export default class CoinCanvasClient {
 
     }
 
-    async pixel(x: number, y: number): Promise<PixelData> {
-        const balances = await this.#http.pixelBalances(x, y);
+    async pixel(coord: PixelCoord): Promise<PixelData> {
+        const balances = await this.#http.pixelBalances(coord);
         return utils.range(NUM_COLOURS).map(i => ({
             balance: balances[i],
-            address: this.#addrGen.forPixelColour(x, y, i),
+            address: this.#addrGen.forPixelColour(coord, i),
             colour: Colour.fromId(i)
         }));
     }

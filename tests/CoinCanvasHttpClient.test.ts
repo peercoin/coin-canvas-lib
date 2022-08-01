@@ -18,7 +18,12 @@ test("can read balances with rate limited delay", async () => {
     const client = new CoinCanvasHttpClient("", 100);
 
     async function expectBalances() {
-        expect(await client.pixelBalances(0, 0)).toStrictEqual(balances);
+        expect(
+            await client.pixelBalances({
+                x: 0,
+                y: 0
+            })
+        ).toStrictEqual(balances);
     }
 
     const beforeFirstMs = Date.now();

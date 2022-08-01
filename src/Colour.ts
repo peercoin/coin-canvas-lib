@@ -1,5 +1,8 @@
 // Copyright 2022 Matthew Mitchell
 
+import {NUM_COLOURS} from "./constants";
+import {range} from "./utils";
+
 export default class Colour {
     id: number;
     name: string;
@@ -30,6 +33,10 @@ export default class Colour {
             new Colour(14, 0x0000EA, "dark blue"),
             new Colour(15, 0x820080, "purple")
         ][id];
+    }
+
+    static palette(): Colour[] {
+        return range(NUM_COLOURS).map(i => Colour.fromId(i));
     }
 
     get cssStr(): string {

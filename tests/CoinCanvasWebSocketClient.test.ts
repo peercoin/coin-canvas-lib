@@ -1,5 +1,7 @@
 // Copyright 2022 Matthew Mitchell
 
+/* eslint-disable object-property-newline */
+
 import {jest} from "@jest/globals";
 import CoinCanvasWebSocketClient from "../src/CoinCanvasWebSocketClient";
 import {Server, Client} from "mock-socket";
@@ -58,8 +60,8 @@ class TestConnection {
 
         for (let i = 0; i < n; i++) {
             const off = startOff+i*5;
-            dv.setInt16(off, pixels[i].x);
-            dv.setInt16(off+2, pixels[i].y);
+            dv.setInt16(off, pixels[i].coord.x);
+            dv.setInt16(off+2, pixels[i].coord.y);
             dv.setInt8(off+4, pixels[i].colourId);
         }
 
@@ -119,14 +121,16 @@ test("provides pixel colours", async () => {
     await conn.expectPixelColours(
         [3],
         [
-            new PixelColour(0, 0, 0),
-            new PixelColour(0xffff, 0xffff, 15),
-            new PixelColour(1, 2, 3)
+            new PixelColour({ x: 0, y: 0 }, 0),
+            new PixelColour({ x: 0xffff, y: 0xffff }, 15),
+            new PixelColour({ x: 1, y: 2 }, 3)
         ]
     );
 
     // Can recieve 256 colours
-    const colours = range(256).map(i => new PixelColour(i, i, i % 16));
+    const colours = range(256).map(
+        i => new PixelColour({ x: i, y: i }, i % 16)
+    );
     await conn.expectPixelColours([253, 0x01, 0], colours);
 
     // Understands bigint varint
