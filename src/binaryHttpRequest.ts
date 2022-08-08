@@ -1,9 +1,9 @@
 // Copyright 2022 Matthew Mitchell
 
-import axios from "axios";
+import axios, {AxiosRequestHeaders} from "axios";
 
 export default async function binaryHttpRequest(
-    url: string, length: number, nodeOrigin?: string
+    url: string, length: number, headers: AxiosRequestHeaders
 ): Promise<ArrayBuffer> {
 
     const result = await axios.get(url, {
@@ -11,7 +11,7 @@ export default async function binaryHttpRequest(
         responseType: "arraybuffer",
         maxContentLength: length,
         timeout: 2000,
-        headers: nodeOrigin ? { "Origin": nodeOrigin } : undefined
+        headers
     });
 
     // Axios returns Buffer objects on node (which is dumb)

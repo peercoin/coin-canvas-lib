@@ -25,12 +25,12 @@ export default defineConfig([
             }
         ],
         plugins: [
+            del({
+                targets: ["dist/*"]
+            }),
             babel({
                 exclude: "node_modules/**",
                 babelHelpers: "runtime"
-            }),
-            del({
-                targets: ["dist/*"]
             }),
             typescript()
         ],

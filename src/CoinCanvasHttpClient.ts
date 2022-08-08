@@ -25,7 +25,8 @@ export default class CoinCanvasHttpClient {
         const waitMs = nextReqMs - Date.now();
         if (waitMs > 0) await sleep(waitMs);
         const result = await binaryHttpRequest(
-            this.#url + path, length, this.#nodeOrigin
+            this.#url + path, length,
+            this.#nodeOrigin === undefined ? {} : { "Origin": this.#nodeOrigin }
         );
         this.#lastRequestMs = Date.now();
         return result;

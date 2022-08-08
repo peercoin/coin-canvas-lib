@@ -118,7 +118,10 @@ export default class CoinCanvasClient {
             // Download bitmap
             const size = Math.ceil(this.#xLen*this.#yLen / 2);
             const rawBitmap = await binaryHttpRequest(
-                this.#bitmapURL, size, this.#bitmapOrigin
+                this.#bitmapURL, size, {
+                    "Cache-Control": "no-cache", // Request from server only if changed
+                    ...(this.#bitmapOrigin && { "Origin": this.#bitmapOrigin })
+                }
             );
             const canvas = new Canvas(this.#xLen, this.#yLen, rawBitmap);
 
