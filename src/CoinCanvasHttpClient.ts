@@ -1,5 +1,6 @@
 // Copyright 2022 Matthew Mitchell
 
+import {Mutex} from "async-mutex";
 import binaryHttpRequest from "./binaryHttpRequest";
 import { NUM_COLOURS } from "./constants";
 import Deserialiser from "./Deserialiser";
@@ -11,6 +12,7 @@ export default class CoinCanvasHttpClient {
     #rateLimitMs: number;
     #lastRequestMs: number;
     #nodeOrigin?: string;
+    #requestMutex = new Mutex(); // Ensures requests are run sequentially
 
     constructor(url: string, rateLimitMs: number, nodeOrigin?: string) {
         // Ensure there is a trailing slash on the url
@@ -20,16 +22,28 @@ export default class CoinCanvasHttpClient {
         this.#nodeOrigin = nodeOrigin;
     }
 
-    async #rateLimitedRequest(path: string, length: number): Promise<ArrayBuffer> {
-        const nextReqMs = this.#lastRequestMs + this.#rateLimitMs;
-        const waitMs = nextReqMs - Date.now();
-        if (waitMs > 0) await sleep(waitMs);
-        const result = await binaryHttpRequest(
-            this.#url + path, length,
-            this.#nodeOrigin === undefined ? {} : { "Origin": this.#nodeOrigin }
-        );
-        this.#lastRequestMs = Date.now();
-        return result;
+    #rateLimitedRequest(path: string, length: number): Promise<ArrayBuffer> {
+
+        // All requests are run sequentially to ensure the rate limit is
+        // being enforced
+        return this.#requestMutex.runExclusive(async () => {
+
+            const nextReqMs = this.#lastRequestMs + this.#rateLimitMs;
+            const waitMs = nextReqMs - Date.now();
+            if (waitMs > 0) await sleep(waitMs);
+
+            try {
+                return binaryHttpRequest(
+                    this.#url + path, length,
+                    this.#nodeOrigin === undefined ? {} : { "Origin": this.#nodeOrigin }
+                );
+            } finally {
+                // Even with an error, set the request response time
+                this.#lastRequestMs = Date.now();
+            }
+
+        });
+
     }
 
     async pixelBalances(coord: PixelCoord): Promise<bigint[]> {
