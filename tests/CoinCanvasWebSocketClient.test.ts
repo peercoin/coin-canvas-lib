@@ -24,7 +24,8 @@ class TestConnection {
             url: TEST_URL,
             onOpen: () => this.onOpen(),
             onClose: () => this.onClose(),
-            onPixelColours: (colours: PixelColour[]) => this.onPixelColours(colours)
+            onPixelColours: (colours: PixelColour[]) => this.onPixelColours(colours),
+            maxUpdates: 256
         });
     }
 
@@ -65,6 +66,8 @@ class TestConnection {
             dv.setInt8(off+4, pixels[i].colourId);
         }
 
+        const closeCallN = this.onClose.mock.calls.length;
+
         const promise = new Promise((resolve) => {
             this.onPixelColours.mockImplementation((respPixels) => {
                 resolve(respPixels as PixelColour[]);
@@ -75,6 +78,10 @@ class TestConnection {
 
         // Expect pixel colours back
         expect(await promise).toEqual(pixels);
+
+        // Check onClose isn't called upto 30ms after
+        await sleep(30);
+        expect(this.onClose.mock.calls.length).toEqual(closeCallN);
 
     }
 
@@ -89,6 +96,8 @@ class TestConnection {
             return false;
         })();
 
+        const pixColourCallN = this.onPixelColours.mock.calls.length;
+
         if (typeof data === "string")
             this.client?.send(data);
         else {
@@ -102,6 +111,10 @@ class TestConnection {
         ).resolves.toBe(closes);
         // Prevents jest complaining
         await waitPromise;
+
+        // Ensure onPixelColours wasn't called
+        await sleep(30);
+        expect(this.onPixelColours.mock.calls.length).toEqual(pixColourCallN);
 
     }
 
@@ -138,16 +151,29 @@ test("provides pixel colours", async () => {
 
 });
 
+test("allows 0 colours", async () => {
+    await conn.expectPixelColours([0], []);
+});
+
+test("refuses too many colours", async () => {
+    await conn.expectClose([
+        0, 253, 0x01, 0x01,
+        ...range(257)
+            .map(i => [
+                0, i / 0xff, // X
+                0, i % 0xff, // Y
+                0 //            C
+            ])
+            .reduce((a, b) => [...a, ...b])
+    ]);
+});
+
 test("refuses non-binary data", async () => {
     await conn.expectClose("\x00\x01\x00\x00\x00\x00\x00");
 });
 
 test("ignore unknown message id", async () => {
     await conn.expectClose([1], false);
-});
-
-test("closes on 0 colours", async () => {
-    await conn.expectClose([0, 0]);
 });
 
 test("closes on too short data", async () => {

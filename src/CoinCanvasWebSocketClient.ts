@@ -6,7 +6,51 @@ import {getErrorMessage, range} from "./utils";
 import IsoWs from "isomorphic-ws";
 
 const RESPONSE_UPDATE_COLOURS = 0;
-const MAX_UPDATES = 1000*1000;
+const DEFAULT_MAX_UPDATES = 1000*1000;
+
+interface Args {
+    url: string,
+    nodeOrigin?: string
+    onOpen: () => void,
+    onClose: (reason: string) => void,
+    onPixelColours: (colours: PixelColour[]) => void,
+    maxUpdates?: number
+}
+
+function onMessage(event: MessageEvent, args: Args) {
+
+    if (!(event.data instanceof ArrayBuffer)) {
+        args.onClose("Websocket provided non-binary data");
+        return;
+    }
+
+    try {
+
+        const ds = new Deserialiser(event.data);
+        const mid = ds.uint8();
+
+        if (mid != RESPONSE_UPDATE_COLOURS)
+            // Ignore other message types
+            return;
+
+        const len = ds.varint();
+        const maxUpdates = args.maxUpdates === undefined
+            ? DEFAULT_MAX_UPDATES : args.maxUpdates;
+
+        if (len > maxUpdates) {
+            args.onClose("Too many updated colours provided");
+            return;
+        }
+
+        const colours = range(Number(len)).map(() => PixelColour.fromDeserialiser(ds));
+        args.onPixelColours(colours);
+
+    } catch (e) {
+        args.onClose(`Could not parse server data: ${getErrorMessage(e)}`);
+    }
+
+
+}
 
 /**
  * Encapsulates a connection to the web socket API.
@@ -22,13 +66,7 @@ export default class CoinCanvasWebSocketClient {
      * failed to open.
      * @param args.onPixelColours The {PixelColour}s received from the server.
      */
-    constructor(args: {
-        url: string,
-        nodeOrigin?: string
-        onOpen: () => void,
-        onClose: (reason: string) => void,
-        onPixelColours: (colours: PixelColour[]) => void,
-    }) {
+    constructor(args: Args) {
 
         // Use global WebSocket if available
         this.#ws = globalThis.WebSocket
@@ -38,36 +76,7 @@ export default class CoinCanvasWebSocketClient {
         this.#ws.binaryType = "arraybuffer";
         this.#ws.onclose = (e: CloseEvent) => args.onClose(e.reason);
         this.#ws.onopen = args.onOpen;
-        this.#ws.onmessage = (event: MessageEvent) => {
-
-            if (!(event.data instanceof ArrayBuffer)) {
-                args.onClose("Websocket provided non-binary data");
-                return;
-            }
-
-            try {
-
-                const ds = new Deserialiser(event.data);
-                const mid = ds.uint8();
-
-                if (mid != RESPONSE_UPDATE_COLOURS)
-                    // Ignore other message types
-                    return;
-
-                const len = ds.varint();
-                if (len < 1)
-                    args.onClose("No colours provided");
-                if (len > MAX_UPDATES)
-                    args.onClose("Too many updated colours provided");
-
-                const colours = range(Number(len)).map(() => PixelColour.fromDeserialiser(ds));
-                args.onPixelColours(colours);
-
-            } catch (e) {
-                args.onClose(`Could not parse server data: ${getErrorMessage(e)}`);
-            }
-
-        };
+        this.#ws.onmessage = (event: MessageEvent) => onMessage(event, args);
 
     }
 
