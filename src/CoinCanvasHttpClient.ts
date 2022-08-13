@@ -15,11 +15,16 @@ export default class CoinCanvasHttpClient {
     #requestMutex = new Mutex(); // Ensures requests are run sequentially
 
     constructor(url: string, rateLimitMs: number, nodeOrigin?: string) {
+
         // Ensure there is a trailing slash on the url
         this.#url = url.endsWith("/") ? url : `${url}/`;
-        this.#rateLimitMs = rateLimitMs;
+
+        // Add 5ms to rate limit to account for rounding errors
+        this.#rateLimitMs = rateLimitMs + 5;
+
         this.#lastRequestMs = 0;
         this.#nodeOrigin = nodeOrigin;
+
     }
 
     #rateLimitedRequest(path: string, length: number): Promise<ArrayBuffer> {
