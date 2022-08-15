@@ -1,20 +1,12 @@
 // Copyright 2022 Matthew Mitchell
 
-import {NUM_COLOURS} from "./constants";
-import {range} from "./utils";
-
 export default class Colour {
     id: number;
     name: string;
     rgb: number;
 
-    constructor(id: number, rgb: number, name: string) {
-        this.id = id;
-        this.name = name;
-        this.rgb = rgb;
-    }
-
-    static fromId(id: number): Colour {
+    static get palette() {
+        // Return new list each time to avoid mutation.
         return [
             new Colour(0, 0xFFFFFF, "white"),
             new Colour(1, 0xC8C8C8, "light grey"),
@@ -32,11 +24,17 @@ export default class Colour {
             new Colour(13, 0x0083C7, "blue"),
             new Colour(14, 0x0000EA, "dark blue"),
             new Colour(15, 0x820080, "purple")
-        ][id];
+        ];
     }
 
-    static palette(): Colour[] {
-        return range(NUM_COLOURS).map(i => Colour.fromId(i));
+    constructor(id: number, rgb: number, name: string) {
+        this.id = id;
+        this.name = name;
+        this.rgb = rgb;
+    }
+
+    static fromId(id: number): Colour {
+        return this.palette[id];
     }
 
     get cssStr(): string {

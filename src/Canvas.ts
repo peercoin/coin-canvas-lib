@@ -3,6 +3,7 @@
 import Colour from "./Colour";
 import PixelColour from "./PixelColour";
 import ImageData from "@canvas/image-data";
+import {range} from "./utils";
 
 /**
  * Abstracts pixel colour data for the canvas, allowing conversion from the
@@ -32,20 +33,31 @@ export default class Canvas {
 
     }
 
+    get size() {
+        return this.#xLen*this.#yLen;
+    }
+
+    get width() {
+        return this.#xLen;
+    }
+
+    get height() {
+        return this.#yLen;
+    }
+
+    getColourArray(): Colour[] {
+        return range(this.size).map(i => this.#colourAt(i));
+    }
+
     getImageData(): ImageData {
 
-        const nPixels = this.#xLen*this.#yLen;
-        const nBytes = 4*nPixels;
+        const nBytes = 4*this.size;
         const data = new Uint8ClampedArray(nBytes);
 
         // Encode colours as RGBA
-        for (let i = 0; i < nPixels; i++) {
+        for (let i = 0; i < this.size; i++) {
 
-            const byteVal = this.#rawData[Math.floor(i / 2)];
-            const colourId = (i % 2 == 0)
-                ? byteVal >> 4 : byteVal & 0x0f;
-
-            const colour = Colour.fromId(colourId);
+            const colour = this.#colourAt(i);
 
             const bytePos = i*4;
             data[bytePos] = colour.red;
@@ -57,6 +69,13 @@ export default class Canvas {
 
         return new ImageData(data, this.#xLen, this.#yLen);
 
+    }
+
+    #colourAt(i: number): Colour {
+        const byteVal = this.#rawData[Math.floor(i / 2)];
+        const colourId = (i % 2 == 0) ? byteVal >> 4 : byteVal & 0x0f;
+        const c = Colour.fromId(colourId);
+        return c;
     }
 
 }
