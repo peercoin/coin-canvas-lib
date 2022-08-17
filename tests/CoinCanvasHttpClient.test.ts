@@ -21,7 +21,11 @@ test("can read balances with rate limited delay", async () => {
 
     });
 
-    const client = new CoinCanvasHttpClient("", 100);
+    const client = new CoinCanvasHttpClient({
+        url: "",
+        rateLimitMs: 100,
+        timeout: 100
+    });
 
     async function expectBalances(throwError: boolean) {
         try {

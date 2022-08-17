@@ -3,14 +3,21 @@
 import axios, {AxiosRequestHeaders} from "axios";
 
 export default async function binaryHttpRequest(
-    url: string, length: number, headers: AxiosRequestHeaders
+    {
+        url, length, headers, timeout = 8000
+    } : {
+        url: string,
+        length: number,
+        headers: AxiosRequestHeaders,
+        timeout?: number
+    }
 ): Promise<ArrayBuffer> {
 
     const result = await axios.get(url, {
         validateStatus: status => status == 200,
         responseType: "arraybuffer",
         maxContentLength: length,
-        timeout: 2000,
+        timeout,
         headers
     });
 

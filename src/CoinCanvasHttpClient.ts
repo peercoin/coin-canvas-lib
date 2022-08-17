@@ -11,16 +11,25 @@ export default class CoinCanvasHttpClient {
     #url: string;
     #rateLimitMs: number;
     #lastRequestMs: number;
+    #timeout: number;
     #nodeOrigin?: string;
     #requestMutex = new Mutex(); // Ensures requests are run sequentially
 
-    constructor(url: string, rateLimitMs: number, nodeOrigin?: string) {
+    constructor(
+        { url, rateLimitMs, timeout, nodeOrigin } : {
+            url: string,
+            rateLimitMs: number,
+            timeout: number,
+            nodeOrigin?: string
+        }
+    ) {
 
         // Ensure there is a trailing slash on the url
         this.#url = url.endsWith("/") ? url : `${url}/`;
 
         // Add 5ms to rate limit to account for rounding errors
         this.#rateLimitMs = rateLimitMs + 5;
+        this.#timeout = timeout;
 
         this.#lastRequestMs = 0;
         this.#nodeOrigin = nodeOrigin;
@@ -38,10 +47,13 @@ export default class CoinCanvasHttpClient {
             if (waitMs > 0) await sleep(waitMs);
 
             try {
-                return binaryHttpRequest(
-                    this.#url + path, length,
-                    this.#nodeOrigin === undefined ? {} : { "Origin": this.#nodeOrigin }
-                );
+                return binaryHttpRequest({
+                    url: this.#url + path,
+                    length,
+                    timeout: this.#timeout,
+                    headers: this.#nodeOrigin === undefined
+                        ? {} : { "Origin": this.#nodeOrigin }
+                });
             } finally {
                 // Even with an error, set the request response time
                 this.#lastRequestMs = Date.now();

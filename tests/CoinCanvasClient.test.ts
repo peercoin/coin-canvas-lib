@@ -84,19 +84,25 @@ function getTestObject(
     onError: (what: string) => void
 ): CoinCanvasClient {
     return new CoinCanvasClient({
+
         xLen: SIDE_LEN,
         yLen: SIDE_LEN,
         wsURL: TEST_WS_URL,
         httpURL: TEST_HTTP_API_URL,
+        httpTimeout: 100,
         httpRateLimit: 300,
         bitmapURL: TEST_BITMAP_URL,
+        bitmapTimeout: 100,
         reconnectMs: RECONNECT_MS,
+
         addrGen: new P2putPixelAddrGenerator(
             "tpc", [0xc7, 0x66, 0xce, 0xc1, 0xef]
         ),
+
         onFullCanvas,
         onUpdatedPixels,
         onError
+
     });
 
 }
@@ -104,7 +110,6 @@ function getTestObject(
 function getPixelUpdateBytes(firstCid = 15, secondCid = 6): ArrayBuffer {
 
     const buf = new ArrayBuffer(2*5+2);
-    const ba = new Uint8Array(buf);
     const dv = new DataView(buf);
 
     // Message ID and varint
