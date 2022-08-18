@@ -57,13 +57,15 @@ function onMessage(event: MessageEvent, args: Args) {
  */
 export default class CoinCanvasWebSocketClient {
     #ws: WebSocket | IsoWs;
+    #isOpen = false;
 
     /**
      * @param args.nodeOrigin When running on nodejs, this can be used to set
      * the web socket Origin header for the handshake.
      * @param args.onOpen Called when the socket has been opened.
-     * @param args.onClose Called when the socket closes for any reason or the socket has
-     * failed to open.
+     * @param args.onClose Called when the socket closes for any reason other
+     * than a requested close via the close() method or the socket has failed to
+     * open.
      * @param args.onPixelColours The {PixelColour}s received from the server.
      */
     constructor(args: Args) {
@@ -74,13 +76,20 @@ export default class CoinCanvasWebSocketClient {
             : new IsoWs(args.url, { origin: args.nodeOrigin });
 
         this.#ws.binaryType = "arraybuffer";
+
         this.#ws.onclose = (e: CloseEvent) => args.onClose(e.reason);
-        this.#ws.onopen = args.onOpen;
+        this.#ws.onopen = () => {
+            this.#isOpen = true;
+            args.onOpen();
+        };
         this.#ws.onmessage = (event: MessageEvent) => onMessage(event, args);
 
     }
 
     close() {
+        if (!this.#isOpen) return;
+        // Do not callback as this is an expected close
+        this.#ws.onclose = null;
         this.#ws.close(1000);
     }
 

@@ -32,6 +32,7 @@ export default class CoinCanvasClient {
     #waitingForBitmap = false;
     #pixelUpdateBuffer: PixelColour[] = [];
     #closed = false;
+    #started = false;
 
     /**
      * This takes care of communicating with the CoinCanvas APIs and provides
@@ -112,7 +113,7 @@ export default class CoinCanvasClient {
 
     #start() {
 
-        if (this.#closed) return;
+        if (this.#closed || this.#started) return;
 
         this.#waitingForBitmap = true;
         this.#pixelUpdateBuffer = [];
@@ -125,6 +126,8 @@ export default class CoinCanvasClient {
             onPixelColours: colours => this.#updatedColours(colours),
             nodeOrigin: this.#wsOrigin
         });
+
+        this.#started = true;
 
     }
 
@@ -159,11 +162,23 @@ export default class CoinCanvasClient {
     }
 
     async #error(reason: string) {
+
         if (this.#closed) return;
-        // Reopen after delay
+
+        // Ensure WS is closed
+        this.#wsClient?.close();
+        this.#wsClient = null;
+
         this.#onError(reason);
+
+        // Allow restart, but if this is set to true again whilst waiting, it
+        // wont start.
+        this.#started = false;
+
+        // Reopen after delay
         await utils.sleep(this.#reconnectMs);
         this.#start();
+
     }
 
     #updatedColours(colours: PixelColour[]) {
