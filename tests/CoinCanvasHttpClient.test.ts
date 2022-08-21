@@ -3,8 +3,11 @@
 import axios from "axios";
 import {jest} from "@jest/globals";
 import CoinCanvasHttpClient from "../src/CoinCanvasHttpClient";
-import {sleep} from "../src/utils";
+import {range, sleep} from "../src/utils";
 import {getMockBalances, balancesToBuffer} from "./utils";
+import PixelBalances from "../src/PixelBalances";
+import Colour from "../src/Colour";
+import {NUM_COLOURS} from "../src/constants";
 
 jest.mock("axios");
 
@@ -29,13 +32,24 @@ test("can read balances with rate limited delay", async () => {
 
     async function expectBalances(throwError: boolean) {
         try {
+
+            const expected = new PixelBalances(
+                Colour.fromId(15),
+                range(NUM_COLOURS).map(i => ({
+                    balance: balances[i],
+                    colour: Colour.fromId(i)
+                }))
+            );
+
             expect(
                 await client.pixelBalances({
                     x: 0,
                     y: throwError ? 1 : 0
                 })
-            ).toStrictEqual(balances);
+            ).toStrictEqual(expected);
+
             expect(throwError).toBe(false);
+
         } catch {
             expect(throwError).toBe(true);
         }

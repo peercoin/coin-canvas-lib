@@ -4,8 +4,9 @@ import {Mutex} from "async-mutex";
 import binaryHttpRequest from "./binaryHttpRequest";
 import { NUM_COLOURS } from "./constants";
 import Deserialiser from "./Deserialiser";
+import PixelBalances from "./PixelBalances";
 import PixelCoord from "./PixelCoord";
-import { range, sleep } from "./utils";
+import { sleep } from "./utils";
 
 export default class CoinCanvasHttpClient {
     #url: string;
@@ -63,12 +64,12 @@ export default class CoinCanvasHttpClient {
 
     }
 
-    async pixelBalances(coord: PixelCoord): Promise<bigint[]> {
+    async pixelBalances(coord: PixelCoord): Promise<PixelBalances> {
         const result = await this.#rateLimitedRequest(
             `balances/${coord.x}/${coord.y}`, 8*NUM_COLOURS
         );
         const ds = new Deserialiser(result);
-        return range(NUM_COLOURS).map(() => ds.uint64());
+        return PixelBalances.fromDeserialiser(ds);
     }
 
 }

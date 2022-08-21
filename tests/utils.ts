@@ -15,9 +15,10 @@ export function getMockBalances(): bigint[] {
 
 export function balancesToBuffer(balances: bigint[]): ArrayBuffer {
 
-    const buffer = new ArrayBuffer(8*NUM_COLOURS);
+    const buffer = new ArrayBuffer(8*NUM_COLOURS+1);
     const dv = new DataView(buffer);
-    range(NUM_COLOURS).forEach(i => dv.setBigUint64(i*8, balances[i]));
+    dv.setUint8(0, 15);
+    range(NUM_COLOURS).forEach(i => dv.setBigUint64(i*8+1, balances[i]));
 
     return buffer;
 

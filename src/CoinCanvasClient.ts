@@ -1,6 +1,6 @@
 // Copyright 2022 Matthew Mitchell
 
-import { PixelData } from "./PixelData";
+import PixelData from "./PixelData";
 import * as utils from "./utils";
 import binaryHttpRequest from "./binaryHttpRequest";
 import Canvas from "./Canvas";
@@ -8,8 +8,6 @@ import CoinCanvasHttpClient from "./CoinCanvasHttpClient";
 import PixelColour from "./PixelColour";
 import CoinCanvasWebSocketClient from "./CoinCanvasWebSocketClient";
 import PixelAddrGenerator from "./PixelAddrGenerator";
-import {NUM_COLOURS} from "./constants";
-import Colour from "./Colour";
 import PixelCoord from "./PixelCoord";
 
 export default class CoinCanvasClient {
@@ -96,11 +94,7 @@ export default class CoinCanvasClient {
 
     async pixel(coord: PixelCoord): Promise<PixelData> {
         const balances = await this.#http.pixelBalances(coord);
-        return utils.range(NUM_COLOURS).map(i => ({
-            balance: balances[i],
-            address: this.#addrGen.forPixelColour(coord, i),
-            colour: Colour.fromId(i)
-        }));
+        return new PixelData(coord, balances, this.#addrGen);
     }
 
     close() {

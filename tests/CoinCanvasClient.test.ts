@@ -10,11 +10,11 @@ import P2putPixelAddrGenerator from "../src/P2putPixelAddrGenerator";
 import PixelColour from "../src/PixelColour";
 import * as utils from "./utils";
 import {Server} from "mock-socket";
-import {range, sleep} from "../src/utils";
+import {sleep} from "../src/utils";
 import Colour from "../src/Colour";
 import {NUM_COLOURS} from "../src/constants";
 import ImageData from "@canvas/image-data";
-import {PixelData} from "../src/PixelData";
+import PixelData from "../src/PixelData";
 
 jest.mock("axios");
 
@@ -156,13 +156,13 @@ function expectImgData(imgData: ImageData) {
 
 function expectPixelBalances(pixBals: PixelData) {
 
-    const pixelExp = range(NUM_COLOURS).map(i => ({
-        balance: TEST_BALANCES[i],
-        address: PIXEL_0_ADDRS[i],
-        colour: Colour.fromId(i)
-    }));
-
-    expect(pixBals).toEqual(pixelExp);
+    expect(pixBals.active.id).toEqual(15);
+    for (let i = 0; i < NUM_COLOURS; i++) {
+        const c = pixBals.colours[i];
+        expect(c.address).toEqual(PIXEL_0_ADDRS[i]);
+        expect(c.balance).toEqual(TEST_BALANCES[i]);
+        expect(c.colour.id).toEqual(i);
+    }
 
 }
 
