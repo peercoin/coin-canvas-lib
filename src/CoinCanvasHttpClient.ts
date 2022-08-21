@@ -66,7 +66,7 @@ export default class CoinCanvasHttpClient {
 
     async pixelBalances(coord: PixelCoord): Promise<PixelBalances> {
         const result = await this.#rateLimitedRequest(
-            `balances/${coord.x}/${coord.y}`, 8*NUM_COLOURS
+            `balances/${coord.x}/${coord.y}`, 8*NUM_COLOURS + 1
         );
         const ds = new Deserialiser(result);
         return PixelBalances.fromDeserialiser(ds);
