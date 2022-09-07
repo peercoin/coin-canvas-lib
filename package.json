@@ -1,7 +1,9 @@
 {
   "name": "coin-canvas-lib",
   "version": "1.0.0",
-  "description": "Javascript library for interacting with the CoinCanvas API",
+  "description": "Javascript library for interacting with the CoinCanvas (Immutable.Place) API",
+  "keywords": ["peercoin", "blockchain", "crypto"],
+  "repository": "https://github.com/peercoin/coin-canvas-lib",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "jsnext:main": "dist/index.esm.js",
